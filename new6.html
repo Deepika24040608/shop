@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffe6f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .toggle-buttons {
+      margin-bottom: 20px;
+    }
+
+    .toggle-buttons button {
+      background-color: white;
+      color: #ff69b4;
+      border: 2px solid #ff69b4;
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .toggle-buttons button.active {
+      background-color: #ff69b4;
+      color: white;
+    }
+
+    .login-panel {
+      background-color: white;
+      border: 2px solid #ff69b4;
+      border-radius: 10px;
+      padding: 30px 40px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      margin: auto;
+      display: none;
+    }
+
+    .login-panel.active {
+      display: block;
+    }
+
+    .login-panel h2 {
+      margin-bottom: 20px;
+      color: #ff69b4;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ffb6c1;
+      border-radius: 5px;
+    }
+
+    button.submit {
+      background-color: #ff69b4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button.submit:hover {
+      background-color: #ff1493;
+    }
+
+    .error {
+      margin-top: 10px;
+      color: red;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .success {
+      margin-top: 10px;
+      color: green;
+      font-size: 0.9em;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toggle-buttons">
+      <button id="adminBtn" class="active">Admin</button>
+      <button id="customerBtn">Customer</button>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="login-panel active">
+      <h2>Admin Login Panel</h2>
+      <form id="adminLoginForm">
+        <input type="email" id="adminEmail" placeholder="Email" required />
+        <input type="password" id="adminPassword" placeholder="Password" required />
+        <button type="submit" class="submit">Login</button>
+        <div class="error" id="adminError">Invalid email or password</div>
+      </form>
+    </div>
+
+    <!-- Customer Panel -->
+    <div id="customerPanel" class="login-panel">
+      <h2>Customer Login</h2>
+      <form id="customerForm">
+        <input type="text" id="custFirstName" placeholder="First Name" required />
+        <input type="text" id="custLastName" placeholder="Last Name" required />
+        <input type="email" id="custEmail" placeholder="Email" required />
+        <button type="submit" class="submit">Create Account</button>
+        <div class="success" id="custSuccess">Account created successfully!</div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const adminBtn = document.getElementById("adminBtn");
+    const customerBtn = document.getElementById("customerBtn");
+    const adminPanel = document.getElementById("adminPanel");
+    const customerPanel = document.getElementById("customerPanel");
+
+    adminBtn.addEventListener("click", () => {
+      adminPanel.classList.add("active");
+      customerPanel.classList.remove("active");
+      adminBtn.classList.add("active");
+      customerBtn.classList.remove("active");
+    });
+
+    customerBtn.addEventListener("click", () => {
+      customerPanel.classList.add("active");
+      adminPanel.classList.remove("active");
+      customerBtn.classList.add("active");
+      adminBtn.classList.remove("active");
+    });
+
+    // Admin login
+    document.getElementById('adminLoginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+      const errorMsg = document.getElementById('adminError');
+
+      if (email === 'admin@example.com' && password === 'admin123') {
+        window.location.href = 'welcom2.html';
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    });
+
+    // Customer form
+    document.getElementById('customerForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const firstName = document.getElementById('custFirstName').value.trim();
+      const lastName = document.getElementById('custLastName').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const successMsg = document.getElementById('custSuccess');
+
+      if (firstName && lastName && email) {
+        successMsg.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = 'welcom3.html';
+        }, 1000); // wait 1 sec before redirect
+      }
+    });
+  </script>
+</body>
+</html>

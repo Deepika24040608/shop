@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping Categories</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f0f8ff; }
+    header { background: linear-gradient(to right, rgb(235, 135, 213), rgb(255, 192, 222)); padding: 15px 30px; color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .left { font-size: 32px; font-weight: bold; }
+    .center { flex: 1; text-align: center; }
+    .center input { width: 60%; padding: 8px; border: none; border-radius: 5px; font-size: 16px; outline: none; }
+    .right { font-size: 16px; }
+    .right button { background-color: white; color: rgb(235, 135, 200); border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    .right button:hover { background-color: #f0f0f0; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal {
+      background: #fff;
+      width: 100vw;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 40px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .modal .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    .right button {
+  background-color: pink;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.right button:hover {
+  background-color: #ff69b4; /* Hot pink on hover */
+  color: white;
+}
+
+
+
+    .products-section { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+    .product { width: 200px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; }
+    .product img { width: 100%; height: 150px; object-fit: cover; }
+    .product h3 { margin: 10px 0 5px; font-size: 16px; }
+    .product p { color: rgb(0, 126, 128); font-weight: bold; }
+    .product button { margin: 5px; padding: 8px 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .place-order { background-color: hsl(325, 61%, 41%); color: white; }
+    .view-details { background-color: hsl(324, 61%, 41%); color: white; }
+
+    .offer-box { margin: 20px auto; width: 95%; max-width: 1200px; padding: 10px; background-color: #fff0f5; border: 2px solid pink; border-radius: 15px; overflow-x: auto; white-space: nowrap; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .offer-box a img { height: 250px; width: auto; max-width: 100%; margin-right: 15px; border-radius: 10px; display: inline-block; vertical-align: middle; transition: transform 0.3s ease; }
+    .offer-box a img:hover { transform: scale(1.05); }
+
+    .categories { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
+    .card { background-color: white; border: 2px solid rgb(135, 232, 235); border-radius: 10px; margin: 15px; width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; overflow: hidden; }
+    .card:hover { transform: scale(1.05); }
+    .card img { width: 100%; height: 150px; object-fit: cover; }
+    .card h2 { background-color: pink; color: white; margin: 0; padding: 10px; font-size: 16px; }
+    .card p { margin: 10px; font-size: 14px; color: #333; }
+    .shop-now { display: block; text-align: center; background-color: rgb(135, 235, 235); color: white; text-decoration: none; margin: 10px; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    .shop-now:hover { background-color: rgb(255, 0, 200); }
+  </style>
+  <script>
+    const productsData = {
+      men: [
+        { name: "Shirt", price: "₹799", image: "https://media-ea.landmarkshops.in/cdn-cgi/image/h=831,w=615,q=85,fit=cover/max-new/1000015688673-Blue-BLUE-1000015688673_01-2100.jpg",url:"https://www.maxfashion.in/in/en/SHOP-Max-Beige-URB-N-Men-Floral-Print-Regular-Fit-Shirt-For-Men/p/1000015688673-Blue-BLUE" },
+        { name: "Trousers", price: "₹1199", image: "https://i.pinimg.com/736x/14/27/2b/14272b015364f0806e70aa8efc18c619.jpg",url: "https://in.pinterest.com/pin/400820435599620712/" },
+        { name: "Jacket", price: "₹1599", image: "https://m.media-amazon.com/images/I/61cyNor+Z9L._AC_UL480_FMwebp_QL65_.jpg" ,url:"https://www.amazon.in/United-Colors-Benetton-Jackets-Standard/dp/B0DV5J6RXQ/ref=sr_1_2_sspa?crid=9WMBMIQ2QUL3&dib=eyJ2IjoiMSJ9.WEa4tHBh-pnlbHVo-EcBa19QmSjg78ZGqI4XJqFoYkfebfRFEI-PAMvzSQQn8XHRPhE_UWiDNtI9QLH8FTPPawrDrcXkZthTSPJzPhJOYld5kuhOOFD4syRfcrGq7uHG7zJykQXbMlXksLcBTnbfntj5iDsGaYcltEYcEV9jBFEpbLdFahMFgGkIR42czl8RBOItpppm8msgm2N_UMh-hoB5zlc_G1KqcIzWKS-DpJWhjtreeeREGu_7liSWrM1Im_ZWygGVMQUNZMoOEftKiC0NIg_Et_W076GoSoszjfU.gCP2PDCVh0MqbiAk_f-DfzRtzGI3gq3EUTYsR0noZKY&dib_tag=se&keywords=Jacket&qid=1754127348&sprefix=jacket%2Caps%2C338&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1&psc=1"},
+        { name: "Sneakers", price: "₹2499", image: "https://m.media-amazon.com/images/I/71Jqccq3+aL._SY695_.jpg",url:"https://www.amazon.in/Stefan-Stylish-Casual-Sneaker-Shoes/dp/B0B8T7TGQD/ref=sr_1_1_sspa?crid=2L5BVTMUYTN5X&dib=eyJ2IjoiMSJ9.jH60-5UlQlidV3iqzP9bYjXzpZX_ifn9BLFVXVDeBUcIygGN_RAse2v56ckFWxtCbRBRSA5-mDKuQQn027_TSCtBohiX3oGlwbsVgsXVIlQgPEgi6EGln4I2iSb0orjX03iIIqpebwSn8-YhXUpa-kb0znNJiCTUZrpgorK8zIWFMq7kamtpnyu97q7jNuQPW4AbtPUCR5U0sebwnbmeN7JIq8ECuJ9y0YVVAE4160zoZ3tp41tdBwIX-uYP7_o2RI97BbvQHpAnXop4J1t1zh0PW_gONAg-D8nKSSDO5ns._nApjc5a19h8jdJKsNk1LlMMDgDWL92dauuwdAyUnxc&dib_tag=se&keywords=Sneakers&qid=1754127847&sprefix=sneakers%2Caps%2C287&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1&psc=1" },
+        { name: "Sunglasses", price: "₹699", image: "https://m.media-amazon.com/images/I/51Mhe7Cy+jL._AC_UL480_FMwebp_QL65_.jpg",url:"https://www.amazon.in/s?k=sunglasses+man&crid=3UJNVBBHDGRIO&sprefix=sungak%2Caps%2C302&ref=nb_sb_ss_mvt-t11-ranker_2_6" },
+        { name: "Watch", price: "₹1999", image: "https://m.media-amazon.com/images/I/618L-zIgoRL._AC_CR0%2C0%2C0%2C0_SX615_SY462_.jpg" ,url:"https://www.amazon.in/stores/page/DF559425-5FAC-4221-90EB-1AB315B2517F/?_encoding=UTF8&store_ref=SB_A07723001IYHYWDQNNO7M-A04802453NK5RALKLFDNM&pd_rd_plhdr=t&aaxitk=26551c46d32e2eb2f3612e5d43153bc7&hsa_cr_id=0&lp_asins=B0D6GK2871%2CB0D6GJH129%2CB0D6GFWYTQ&lp_query=Watch&lp_slot=auto-sparkle-hsa-tetris&aref=HWspswBVDa&ref_=sbx_be_s_sparkle_lsi4d_bkgd&pd_rd_w=ryFz0&content-id=amzn1.sym.cbe1d71a-30e3-45dc-b787-bad221b13c68%3Aamzn1.sym.cbe1d71a-30e3-45dc-b787-bad221b13c68&pf_rd_p=cbe1d71a-30e3-45dc-b787-bad221b13c68&pf_rd_r=4ENN5DMNNJEV4X8P4WXS&pd_rd_wg=BaK6V&pd_rd_r=20e2d87a-2fdc-4631-9a1a-85311bbac080"},
+        { name: "Belt", price: "₹499", image: "https://m.media-amazon.com/images/I/71W1bdixE-L._AC_UL480_FMwebp_QL65_.jpg",url:"https://www.amazon.in/Louis-Philippe-LPBLDRGFF00126-Philippe_Mens__Belt_-LPBLDRGFF00126_Brown_S/dp/B0D4VJ55H5/ref=sr_1_2_sspa?crid=17KNUDDO9Z85H&dib=eyJ2IjoiMSJ9.ytcc50wZ0vZAzGTU0gbKtucc0fJ-OTbstm-cvlzgKyE6pW-3MXHRQGl76iRHrXUooEw2oi4LwHurK3tw17sw9c5DgMbEAonwqXYgAoXeHD9W63fZJUxu7yBECtJn5HP17PYwOdw0LT9GxOl-2J7JwdIamRuxfVYe49uo3ul8SS4J-EWURsmjRa6rfBPCSvZ0HhD6eC8_sxw2LJ3W8vBZaqi3qxu1Ls-HRg9a7Oj7-f5DMHH94dMXQJ91T7pcV3zgx_MnqXp92AjGqy8dooisCwnieWAkdRD2B68aXZ8If68.qmlm-cCFIo1J3KWrtmH7JemvlMoi2BTU-ESComWj-Ng&dib_tag=se&keywords=Belt%22&qid=1754128174&sprefix=belt%2B%2Caps%2C538&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1&psc=1" },
+        { name: "T-Shirts Combo", price: "₹1099", image: "https://m.media-amazon.com/images/I/41p2VQIDJfL._SX679_.jpg",url:"https://www.amazon.in/XENOVAURBAN-Unisex-Regular-Cotton-Tshirt/dp/B0D1XTGNWN/ref=sr_1_2_sspa?crid=27T743P94XR82&dib=eyJ2IjoiMSJ9.Z4GT9hz7QYvjr3Q2lk7oDuuKHr3TZn9jo-6LJxGXM6DpC4riA6DJGnd84KN47fYxwWRZLh-MULOrbVcy53vIPsvyaanQWBOm-v4_TdwxzB4yV4nNbPk8qWYktw8Be6MFqbM9hri8lSqOc53iwc-t-D6woX73r1H8dQqhPbXZHD6zL6UQrsp99z3p6wwPydA6G7QT_pCoXKij1LSlF78kZrxbC0YqDomuUBg1K4ZizHGrlwuUH52cL00scG8W-il5PwXKmUBP3LcIdyyGvlkTsCQxmdJDIxj06_BCEKKu7xk.B8CFuxSBfnXSE7tNNRzxouNAtEUWxDaOFZj1g-6KT9g&dib_tag=se&keywords=T-Shirts%2BCombo&qid=1754128231&sprefix=t-shirts%2Bcombo%2Caps%2C349&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1&psc=1" },
+        { name: "Running Shoes", price: "₹2299", image: "https://m.media-amazon.com/images/I/51znz8DAFJL._AC_UL480_FMwebp_QL65_.jpg",url:"https://www.amazon.in/Fenta-Sports-Ruff-Tuff-Running-Numeric_8/dp/B0BS9KM94P/ref=sr_1_2_sspa?crid=14V8MM4BAXSI1&dib=eyJ2IjoiMSJ9.ICZa8ARi5WOf0uveIdzMiz4NeecpkgQgDe-hzibLU0U0lwl5hR6_fYHYvoaldigp6N1wE96xVqXOnZ1wwkV0d4VjWNMkt6ujL-14b3hkOTlmBpXQiRDNNU_PjChR6RPYEnTzaGqACZCSABindOJjOVISwhe0JvUKPPfFJQLucVEAOSPogqduMyaF6RQ2uC4sVbGaypkmA6fSo-S0_VCk2id5IWfYvU3Ay8OWI-9XCs0cZKpmd5jOJe8K8DGXwaI6itSiRvkjGMbv73FX2n_3DFKUUT8tAkknbHXN_PigXQI.kw2FBOfVF0MkgmSk3Yco4CdO9OmFu88lWShDsoL5pdM&dib_tag=se&keywords=Running%2BShoes&qid=1754128285&sprefix=running%2Bshoes%2Caps%2C280&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1&psc=1" },
+        { name: "Hoodie", price: "₹1299", image: "https://m.media-amazon.com/images/I/71GaH2nLQ6L._SY879_.jpg" ,url:"https://www.amazon.in/Lymio-Hoodies-Sweatshirt-Unisex-H-46-47/dp/B0DBDMYWK3/ref=sr_1_5?crid=2EZK05J018DG1&dib=eyJ2IjoiMSJ9.2gaq11h36P6tQuIVAJx6k566p7bbgmcUYOtoM4uuOPf8SJ2nTIdS3BxpJP1IW-RKEvmdd2DmWt5Hk17prqMH-mg2QPhft-dRp3p5OYCZf6Z9m8FhRsOns8r6ZW0Vqu4UwhcslOm3SiouUR1sPE_PuDxwOGVEciwUmO0F6O3k2VEXoQjD12I1OOaR1HzXSMRcHKN84N6zG1rOhCFONdRrdeDN40BRBML2Pfzlyof1lAniSk1d4n6WnQ7R0qtlZCMgt7319ywSFKRjOCR878wMgVNLahHjXePZ3od9WgcsHro.sxPr8GJg3jqjvCrLvwE4g5UjXPHbKi7HpGl4gwhTGPE&dib_tag=se&keywords=Hoodie&qid=1754128377&sprefix=hoodie%2Caps%2C297&sr=8-5&th=1&psc=1"}
+      ]
+       , women: [
+  {
+    name: "Bridal Lehenga Choli",price: "₹3499",image: "https://cdn.pixabay.com/photo/2021/09/24/10/38/women-fashion-silk-lehenga-girls-6649303_1280.jpg"
+  },
+  {
+    name: "Designer Silk Saree",price: "₹2499",image: "https://images.pexels.com/photos/3319864/pexels-photo-3319864.jpeg"
+  },
+  {
+    name: "Elegant Anarkali Suit",price: "₹1899",image: "https://images.pexels.com/photos/3748613/pexels-photo-3748613.jpeg"
+  },
+  {
+    name: "Party Wear Gown",price: "₹2599",image: "https://images.pexels.com/photos/3258537/pexels-photo-3258537.jpeg"
+  },
+  {
+    name: "Printed Kurti Set",price: "₹999",image: "https://images.pexels.com/photos/7148372/pexels-photo-7148372.jpeg"
+  },
+  {
+    name: "Festive Maxi Dress",price: "₹1399",image: "https://images.pexels.com/photos/5480699/pexels-photo-5480699.jpeg"
+  },
+  {
+    name: "Floral Embroidered Lehenga",price: "₹2799",image: "https://cdn.pixabay.com/photo/2023/07/04/12/45/woman-fashion-lehenga-lady-female-8096424_1280.jpg"
+  },
+  {
+    name: "Lehenga with Dupatta Set",price: "₹3199",image: "https://images.pexels.com/photos/31017772/pexels-photo-31017772.jpeg"
+  },
+  {
+    name: "Satin Wedding Lehenga",price: "₹2899",image: "https://images.pexels.com/photos/28604241/pexels-photo-28604241.jpeg"
+  },
+  {
+    name: "Chikankari Kurti Set",price: "₹1199",image: "https://images.pexels.com/photos/31601245/pexels-photo-31601245.jpeg"
+  }
+  ]
+  ,kids: [
+  {
+    name: "Festive Frock Dress",price: "₹799",image: "https://images.pexels.com/photos/19191451/pexels-photo-19191451.jpeg"
+  },
+  {
+    name: "Traditional Kurta Pajama",price: "₹999",image: "https://images.pexels.com/photos/3468824/pexels-photo-3468824.jpeg"
+  },
+  {
+    name: "Floral Party Gown",price: "₹1199",image: "https://images.pexels.com/photos/19191338/pexels-photo-19191338.jpeg"
+  },
+  {
+    name: "Casual Cotton Shorts Set",price: "₹699",image: "https://images.pexels.com/photos/3661353/pexels-photo-3661353.jpeg"
+  },
+  {
+    name: "Ethnic Embroidered Dress",price: "₹1299", image: "https://images.pexels.com/photos/19191260/pexels-photo-19191260.jpeg"
+  },
+  {
+    name: "Festive Sherwani Set",price: "₹1499",image: "https://images.pexels.com/photos/13644262/pexels-photo-13644262.jpeg"
+  },
+  {
+    name: "Printed Kids Kurti",price: "₹899",image: "https://images.pexels.com/photos/20020971/pexels-photo-20020971.jpeg"
+  },
+  {
+    name: "Lehenga for Girls",price: "₹1199",image: "https://cdn.pixabay.com/photo/2022/02/15/14/24/child-7014356_1280.jpg"
+  },
+  {
+    name: "Casual Summer Dress",price: "₹799",image: "https://images.pexels.com/photos/18985783/pexels-photo-18985783.jpeg"
+  },
+  {
+    name: "Princess Tulle Gown",price: "₹1399",image: "https://images.pexels.com/photos/13256176/pexels-photo-13256176.jpeg"
+  }
+],HomeDecor: [
+  { name: "Elegant Vase Set", price: "₹1299", image: "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg" },
+  { name: "Wall Hanging Art", price: "₹2199", image: "https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg" },
+  { name: "Indoor Plant Basket", price: "₹799", image: "https://images.pexels.com/photos/450562/pexels-photo-450562.jpeg" },
+  { name: "Glass Candle Holder", price: "₹999", image: "https://images.pexels.com/photos/590791/pexels-photo-590791.jpeg" },
+  { name: "Decorative Cushion Cover", price: "₹599", image: "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg" },
+  { name: "Ceramic Pottery", price: "₹1499", image: "https://images.pexels.com/photos/263194/pexels-photo-263194.jpeg" },
+  { name: "Table Lamp Decor", price: "₹1799", image: "https://images.pexels.com/photos/271472/pexels-photo-271472.jpeg" },
+  { name: "Boho Wall Mirror", price: "₹1299", image: "https://images.pexels.com/photos/175351/pexels-photo-175351.jpeg" },
+  { name: "Macrame Wall Hanging", price: "₹899", image: "https://images.pexels.com/photos/235726/pexels-photo-235726.jpeg" },
+  { name: "Wood Frame Photo Stand", price: "₹699", image: "https://images.pexels.com/photos/273238/pexels-photo-273238.jpeg" }
+],
+Kitchen: [
+  { name: "Stainless Cookware Set", price: "₹2499", image: "https://images.pexels.com/photos/3643651/pexels-photo-3643651.jpeg" },
+  { name: "Spice Jar Rack", price: "₹999", image: "https://images.pexels.com/photos/3655364/pexels-photo-3655364.jpeg" },
+  { name: "Ceramic Dinnerware Set", price: "₹3499", image: "https://images.pexels.com/photos/376079/pexels-photo-376079.jpeg" },
+  { name: "Wooden Utensils Pack", price: "₹799", image: "https://images.pexels.com/photos/363295/pexels-photo-363295.jpeg" },
+  { name: "Glass Storage Jars", price: "₹1199", image: "https://images.pexels.com/photos/265971/pexels-photo-265971.jpeg" },
+  { name: "Tea & Coffee Canisters", price: "₹1499", image: "https://images.pexels.com/photos/302897/pexels-photo-302897.jpeg" },
+  { name: "Marble Chopping Board", price: "₹999", image: "https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg" },
+  { name: "Non-Stick Frying Pan", price: "₹1399", image: "https://images.pexels.com/photos/376401/pexels-photo-376401.jpeg" },
+  { name: "Spice Mill Grinder", price: "₹799", image: "https://images.pexels.com/photos/414666/pexels-photo-414666.jpeg" },
+  { name: "Eco Kitchen Cloths", price: "₹599", image: "https://images.pexels.com/photos/374794/pexels-photo-374794.jpeg" }
+],
+Furniture: [
+  { name: "Modern Sofa Set", price: "₹14999", image: "https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg" },
+  { name: "Wooden Coffee Table", price: "₹4999", image: "https://images.pexels.com/photos/276587/pexels-photo-276587.jpeg" },
+  { name: "Dining Table & Chairs", price: "₹19999", image: "https://images.pexels.com/photos/691328/pexels-photo-691328.jpeg" },
+  { name: "Bookshelf Rack", price: "₹3999", image: "https://images.pexels.com/photos/276584/pexels-photo-276584.jpeg" },
+  { name: "Accent Lounge Chair", price: "₹6999", image: "https://images.pexels.com/photos/276586/pexels-photo-276586.jpeg" },
+  { name: "Minimalist TV Stand", price: "₹5999", image: "https://images.pexels.com/photos/276582/pexels-photo-276582.jpeg" },
+  { name: "Area Rug (Modern)", price: "₹2599", image: "https://images.pexels.com/photos/276585/pexels-photo-276585.jpeg" },
+  { name: "Wall Shelf Set", price: "₹3299", image: "https://images.pexels.com/photos/276588/pexels-photo-276588.jpeg" },
+  { name: "Bedside Table", price: "₹2999", image: "https://images.pexels.com/photos/276589/pexels-photo-276589.jpeg" },
+  { name: "Decorative Ottoman", price: "₹3499", image: "https://images.pexels.com/photos/276580/pexels-photo-276580.jpeg" }
+],
+Bangles: [
+  {
+    name: "Traditional Gold Bangles",price: "₹899",image: "https://images.pexels.com/photos/112831/pexels-photo-112831.jpeg"
+  },
+  {
+    name: "Kundan Polki Bangles",price: "₹1299",image: "https://images.pexels.com/photos/597897/pexels-photo-597897.jpeg"
+  },
+  {
+    name: "Pearl & Gold Bracelet Set",price: "₹1499",image: "https://images.pexels.com/photos/231857/pexels-photo-231857.jpeg"
+  },
+  {
+    name: "Antique Finish Bangles",price: "₹799",image: "https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg"
+  },
+  {
+    name: "Hand-henna & Jewelry Combo",price: "₹1099",image: "https://images.pexels.com/photos/590791/pexels-photo-590791.jpeg"
+  },
+  {
+    name: "Mehndi Adorned Hands & Bangles",price: "₹999",image: "https://images.pexels.com/photos/9100235/pexels-photo-9100235.jpeg"
+  },
+  {
+    name: "Colorful Bangle Stack", price: "₹699",image: "https://images.pexels.com/photos/273238/pexels-photo-273238.jpeg"
+  },
+  {
+    name: "Bridal Occasion Bangles",price: "₹1599",image: "https://images.pexels.com/photos/175351/pexels-photo-175351.jpeg"
+  },
+  {
+    name: "Floral Embellished Bangles",price: "₹1199",image: "https://images.pexels.com/photos/235726/pexels-photo-235726.jpeg"
+  },
+  {
+    name: "Minimalist Gold Bracelet",price: "₹679",image: "https://images.pexels.com/photos/599897/pexels-photo-597897.jpeg"
+  }
+],
+Jewellery: [
+  { name: "Kundan Necklace", price: "₹3999", image: "https://images.pexels.com/photos/128935/pexels-photo-128935.jpeg" },
+  { name: "Gold Earrings Set", price: "₹2199", image: "https://images.pexels.com/photos/915875/pexels-photo-915875.jpeg" },
+  { name: "Pearl Bracelet", price: "₹1499", image: "https://images.pexels.com/photos/231857/pexels-photo-231857.jpeg" },
+  { name: "Polki Maang Tikka", price: "₹2999", image: "https://images.pexels.com/photos/597897/pexels-photo-597897.jpeg" },
+  { name: "Traditional Bangles Set", price: "₹1599", image: "https://images.pexels.com/photos/112831/pexels-photo-112831.jpeg" },
+  { name: "Choker Necklace", price: "₹3499", image: "https://images.pexels.com/photos/189944/pexels-photo-189944.jpeg" },
+  { name: "Emerald Ring", price: "₹1899", image: "https://images.pexels.com/photos/129864/pexels-photo-129864.jpeg" },
+  { name: "Temple Jewellery Set", price: "₹2999", image: "https://images.pexels.com/photos/209705/pexels-photo-209705.jpeg" },
+  { name: "Jadau Pendant Set", price: "₹2599", image: "https://images.pexels.com/photos/209707/pexels-photo-209707.jpeg" },
+ 
+],
+Skincare: [
+  { name: "Rose Face Mist", price: "₹499", image: "https://images.pexels.com/photos/405671/pexels-photo-405671.jpeg" },
+  { name: "Herbal Face Pack", price: "₹699", image: "https://images.pexels.com/photos/394371/pexels-photo-394371.jpeg" },
+  { name: "Vitamin C Serum", price: "₹999", image: "https://images.pexels.com/photos/364180/pexels-photo-364180.jpeg" },
+  { name: "Sunscreen SPF‑50", price: "₹799", image: "https://images.pexels.com/photos/291645/pexels-photo-291645.jpeg" },
+  { name: "Day Moisturizer", price: "₹599", image: "https://images.pexels.com/photos/775219/pexels-photo-775219.jpeg" },
+  { name: "Eye Gel Cream", price: "₹699", image: "https://images.pexels.com/photos/57530/pexels-photo-57530.jpeg" },
+  { name: "Face Cleanser", price: "₹549", image: "https://images.pexels.com/photos/405825/pexels-photo-405825.jpeg" },
+  { name: "Night Repair Serum", price: "₹1199", image: "https://images.pexels.com/photos/573615/pexels-photo-573615.jpeg" },
+  { name: "Lip Balm Set", price: "₹399", image: "https://images.pexels.com/photos/919436/pexels-photo-919436.jpeg" },
+  { name: "Sheet Masks (Pack 5)", price: "₹799", image: "https://images.pexels.com/photos/794029/pexels-photo-794029.jpeg" }
+],
+Footwear: [
+  { name: "Embroidered Juttis", price: "₹1499", image: "https://images.pexels.com/photos/19090/pexels-photo.jpg" },
+  { name: "Beaded Sandals", price: "₹1299", image: "https://images.pexels.com/photos/19084/pexels-photo.jpg" },
+  { name: "Festive Heel Flats", price: "₹1999", image: "https://images.pexels.com/photos/19095/pexels-photo.jpg" },
+  { name: "Golden Pumps", price: "₹2199", image: "https://images.pexels.com/photos/19093/pexels-photo.jpg" },
+  { name: "Traditional Kolhapuris", price: "₹999", image: "https://images.pexels.com/photos/19092/pexels-photo.jpg" },
+  { name: "Kitten Heels", price: "₹1799", image: "https://images.pexels.com/photos/19096/pexels-photo.jpg" },
+  { name: "Festive Moccasins", price: "₹1599", image: "https://images.pexels.com/photos/19097/pexels-photo.jpg" },
+  { name: "Ankle Strap Heels", price: "₹1899", image: "https://images.pexels.com/photos/19100/pexels-photo.jpg" },
+  { name: "Silk Slip-ons", price: "₹1399", image: "https://images.pexels.com/photos/19101/pexels-photo.jpg" },
+  { name: "Ethnic Sandals Pair", price: "₹1099", image: "https://images.pexels.com/photos/19102/pexels-photo.jpg" }
+],
+Bags: [
+  { name: "Embroidered Potli Bag", price: "₹799", image: "https://images.pexels.com/photos/1666079/pexels-photo-1666079.jpeg" },
+  { name: "Chikankari Clutch", price: "₹1299", image: "https://images.pexels.com/photos/1666080/pexels-photo-1666080.jpeg" },
+  { name: "Leather Tote Bag", price: "₹2499", image: "https://images.pexels.com/photos/2983464/pexels-photo-2983464.jpeg" },
+  { name: "Sling Bag Combo", price: "₹1199", image: "https://images.pexels.com/photos/2988475/pexels-photo-2988475.jpeg" },
+  { name: "Festive Embellished Bag", price: "₹1499", image: "https://images.pexels.com/photos/3661579/pexels-photo-3661579.jpeg" },
+  { name: "Potli Box Set", price: "₹1699", image: "https://images.pexels.com/photos/1602696/pexels-photo-1602696.jpeg" },
+  { name: "Hand-embroidered Tote", price: "₹1799", image: "https://images.pexels.com/photos/1602697/pexels-photo-1602697.jpeg" },
+  { name: "Clutch Pair Set", price: "₹1399", image: "https://images.pexels.com/photos/1602698/pexels-photo-1602698.jpeg" },
+  { name: "Zari Envelope Clutch", price: "₹1599", image: "https://images.pexels.com/photos/1602699/pexels-photo-1602699.jpeg" },
+  { name: "Ethnic Shoulder Bag", price: "₹1899", image: "https://images.pexels.com/photos/1602700/pexels-photo-1602700.jpeg" }
+],
+Electronics: [
+  { name: "Wireless Earbuds", price: "₹2999", image: "https://images.pexels.com/photos/339466/pexels-photo-339466.jpeg" },
+  { name: "Smartwatch (Fitness)", price: "₹4999", image: "https://images.pexels.com/photos/278897/pexels-photo-278897.jpeg" },
+  { name: "Portable Bluetooth Speaker", price: "₹1999", image: "https://images.pexels.com/photos/374870/pexels-photo-374870.jpeg" },
+  { name: "Desk LED Lamp", price: "₹1299", image: "https://images.pexels.com/photos/271472/pexels-photo-271472.jpeg" },
+  { name: "Laptop with Accessories", price: "₹34999", image: "https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg" },
+  { name: "Gaming Headset", price: "₹3999", image: "https://images.pexels.com/photos/339469/pexels-photo-339469.jpeg" },
+  { name: "Fitness Tracker Band", price: "₹2499", image: "https://images.pexels.com/photos/267394/pexels-photo-267394.jpeg" },
+  { name: "Mobile Phone Stand", price: "₹699", image: "https://images.pexels.com/photos/4042804/pexels-photo-4042804.jpeg" },
+  { name: "USB-C Hub Adapter", price: "₹899", image: "https://images.pexels.com/photos/4042804/pexels-photo-4042804.jpeg" },
+  { name: "Wireless Charger Pad", price: "₹1099", image: "https://images.pexels.com/photos/4042804/pexels-photo-4042804.jpeg" }
+],
+Watches: [
+  { name: "Classic Analog Watch", price: "₹2999", image: "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg" },
+  { name: "Rose Gold Women's Watch", price: "₹3499", image: "https://images.pexels.com/photos/190820/pexels-photo-190820.jpeg" },
+  { name: "Metal Luxury Watch", price: "₹3999", image: "https://images.pexels.com/photos/190822/pexels-photo-190822.jpeg" },
+  { name: "Minimalist Black Dial", price: "₹2599", image: "https://images.pexels.com/photos/190823/pexels-photo-190823.jpeg" },
+  { name: "Sports Chronograph", price: "₹4499", image: "https://images.pexels.com/photos/190823/pexels-photo-190823.jpeg" },
+  { name: "Leather Strap Watch", price: "₹3199", image: "https://images.pexels.com/photos/190822/pexels-photo-190822.jpeg" },
+  { name: "Digital LED Watch", price: "₹1899", image: "https://images.pexels.com/photos/190820/pexels-photo-190820.jpeg" },
+  { name: "Skeleton Dial Watch", price: "₹4799", image: "https://images.pexels.com/photos/190821/pexels-photo-190821.jpeg" },
+  { name: "Dress Watches Set", price: "₹5299", image: "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg" },
+  { name: "Pocket Watch Retro", price: "₹3999", image: "https://images.pexels.com/photos/190822/pexels-photo-190822.jpeg" }
+],
+Mobiles: [
+  { name: "Latest Android Smartphone", price: "₹14999", image: "https://images.pexels.com/photos/5082575/pexels-photo-5082575.jpeg" },
+  { name: "Flip Mobile Phone", price: "₹12999", image: "https://images.pexels.com/photos/5077047/pexels-photo-5077047.jpeg" },
+  { name: "Gold-tone Mobile Boxed", price: "₹15999", image: "https://images.pexels.com/photos/588157/pexels-photo-588157.jpeg" },
+  { name: "Phone with Headphones", price: "₹13999", image: "https://images.pexels.com/photos/434160/pexels-photo-434160.jpeg" },
+  { name: "Dual Screen Smartphone", price: "₹17999", image: "https://images.pexels.com/photos/547339/pexels-photo-547339.jpeg" },
+  { name: "White Mobile Device", price: "₹11999", image: "https://images.pexels.com/photos/5082575/pexels-photo-5082575.jpeg" },
+  { name: "Luxury Phone Display", price: "₹19999", image: "https://images.pexels.com/photos/5077047/pexels-photo-5077047.jpeg" },
+  { name: "Phone Flat Lay Setup", price: "₹12999", image: "https://images.pexels.com/photos/547339/pexels-photo-547339.jpeg" },
+  { name: "Touchscreen Smartphone", price: "₹15999", image: "https://images.pexels.com/photos/434160/pexels-photo-434160.jpeg" },
+  { name: "Mobile with Apps Display", price: "₹14999", image: "https://images.pexels.com/photos/5082575/pexels-photo-5082575.jpeg" }
+],
+Sunglasses: [
+  { name: "Aviator Shades", price: "₹1299", image: "https://images.pexels.com/photos/46710/pexels-photo-46710.jpeg" },
+  { name: "Cat-eye Sunglasses", price: "₹1499", image: "https://images.pexels.com/photos/46711/pexels-photo-46711.jpeg" },
+  { name: "Round Retro Shades", price: "₹1599", image: "https://images.pexels.com/photos/46712/pexels-photo-46712.jpeg" },
+  { name: "Polarized Wayfarer", price: "₹1799", image: "https://images.pexels.com/photos/46713/pexels-photo-46713.jpeg" },
+  { name: "Sport Wrap Sunglasses", price: "₹1399", image: "https://images.pexels.com/photos/46714/pexels-photo-46714.jpeg" },
+  { name: "Fashion Flat Lay Pair", price: "₹1899", image: "https://images.pexels.com/photos/2622187/pexels-photo-2622187.jpeg" },
+  { name: "Luxury Black Shades", price: "₹2199", image: "https://images.pexels.com/photos/46713/pexels-photo-46713.jpeg" },
+  { name: "Square Frame Sunglasses", price: "₹1599", image: "https://images.pexels.com/photos/46712/pexels-photo-46712.jpeg" },
+  { name: "Tortoise-shell Glasses", price: "₹1699", image: "https://images.pexels.com/photos/46711/pexels-photo-46711.jpeg" },
+  { name: "Trendsetter Shades", price: "₹1999", image: "https://images.pexels.com/photos/46710/pexels-photo-46710.jpeg" }
+],
+Toys: [
+  { name: "Wooden Puzzle Set", price: "₹799", image: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg" },
+  { name: "Soft Plush Toy", price: "₹599", image: "https://images.pexels.com/photos/1300975/pexels-photo-1300975.jpeg" },
+  { name: "Educational Blocks", price: "₹899", image: "https://images.pexels.com/photos/207183/pexels-photo-207183.jpeg" },
+  { name: "DIY Craft Kit", price: "₹999", image: "https://images.pexels.com/photos/1031234/pexels-photo-1031234.jpeg" },
+  { name: "Ride-On Toy Car", price: "₹1199", image: "https://images.pexels.com/photos/160846/pexels-photo-160846.jpeg" },
+  { name: "Stacking Toy Set", price: "₹699", image: "https://images.pexels.com/photos/2336575/pexels-photo-2336575.jpeg" },
+  { name: "Board Game for Kids", price: "₹899", image: "https://images.pexels.com/photos/277455/pexels-photo-277455.jpeg" },
+  { name: "Building Blocks Set", price: "₹999", image: "https://images.pexels.com/photos/207186/pexels-photo-207186.jpeg" },
+  { name: "Colorful Play Dough", price: "₹499", image: "https://images.pexels.com/photos/1340677/pexels-photo-1340677.jpeg" },
+  { name: "Kids Puzzle Book", price: "₹399", image: "https://images.pexels.com/photos/968606/pexels-photo-968606.jpeg" }
+],
+Casuals: [
+  { name: "Denim Jacket", price: "₹1299", image: "https://images.pexels.com/photos/428338/pexels-photo-428338.jpeg" },
+  { name: "Printed T‑Shirt", price: "₹799", image: "https://images.pexels.com/photos/428339/pexels-photo-428339.jpeg" },
+  { name: "Summer Shorts", price: "₹699", image: "https://images.pexels.com/photos/428340/pexels-photo-428340.jpeg" },
+  { name: "Casual Shirt", price: "₹999", image: "https://images.pexels.com/photos/428341/pexels-photo-428341.jpeg" },
+  { name: "Chino Pants", price: "₹1199", image: "https://images.pexels.com/photos/428342/pexels-photo-428342.jpeg" },
+  { name: "Graphic Hoodie", price: "₹1399", image: "https://images.pexels.com/photos/428343/pexels-photo-428343.jpeg" },
+  { name: "Slim Fit Jeans", price: "₹1499", image: "https://images.pexels.com/photos/428344/pexels-photo-428344.jpeg" },
+  { name: "Chiffon Shirt", price: "₹1099", image: "https://images.pexels.com/photos/428345/pexels-photo-428345.jpeg" },
+  { name: "Breathable Polo Tee", price: "₹899", image: "https://images.pexels.com/photos/428346/pexels-photo-428346.jpeg" },
+  { name: "Casual Joggers", price: "₹1199", image: "https://images.pexels.com/photos/428347/pexels-photo-428347.jpeg" }
+],
+Sportswear: [
+  { name: "Yoga Set", price: "₹1499", image: "https://images.pexels.com/photos/3756723/pexels-photo-3756723.jpeg" },
+  { name: "Running Shoes", price: "₹2299", image: "https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg" },
+  { name: "Track Pants & Tee", price: "₹999", image: "https://images.pexels.com/photos/2529149/pexels-photo-2529149.jpeg" },
+  { name: "Gym T-Shirt", price: "₹799", image: "https://images.pexels.com/photos/2529150/pexels-photo-2529150.jpeg" },
+  { name: "Gym Shorts", price: "₹699", image: "https://images.pexels.com/photos/2529151/pexels-photo-2529151.jpeg" },
+  { name: "Fitness Leggings", price: "₹1199", image: "https://images.pexels.com/photos/2529152/pexels-photo-2529152.jpeg" },
+  { name: "Sports Bra Top", price: "₹1099", image: "https://images.pexels.com/photos/2529153/pexels-photo-2529153.jpeg" },
+  { name: "Zip Hoodie Jacket", price: "₹1599", image: "https://images.pexels.com/photos/2529154/pexels-photo-2529154.jpeg" },
+  { name: "Sweat-wicking Socks", price: "₹499", image: "https://images.pexels.com/photos/2529155/pexels-photo-2529155.jpeg" },
+  { name: "Water Bottle Set", price: "₹599", image: "https://images.pexels.com/photos/2529156/pexels-photo-2529156.jpeg" }
+],
+Winterwear: [
+  { name: "Puffer Jacket", price: "₹2499", image: "https://images.pexels.com/photos/842811/pexels-photo-842811.jpeg" },
+  { name: "Woolen Scarf", price: "₹499", image: "https://images.pexels.com/photos/374715/pexels-photo-374715.jpeg" },
+  { name: "Knitted Beanie", price: "₹399", image: "https://images.pexels.com/photos/374716/pexels-photo-374716.jpeg" },
+  { name: "Thermal Gloves", price: "₹599", image: "https://images.pexels.com/photos/374717/pexels-photo-374717.jpeg" },
+  { name: "Fleece Hoodie", price: "₹1299", image: "https://images.pexels.com/photos/374718/pexels-photo-374718.jpeg" },
+  { name: "Thermal Socks", price: "₹299", image: "https://images.pexels.com/photos/374719/pexels-photo-374719.jpeg" },
+  { name: "Wool Sweater", price: "₹1699", image: "https://images.pexels.com/photos/374720/pexels-photo-374720.jpeg" },
+  { name: "Ear Muffs", price: "₹399", image: "https://images.pexels.com/photos/374721/pexels-photo-374721.jpeg" },
+  { name: "Down Vest", price: "₹1799", image: "https://images.pexels.com/photos/374722/pexels-photo-374722.jpeg" },
+  { name: "Quilted Jacket", price: "₹2199", image: "https://images.pexels.com/photos/374723/pexels-photo-374723.jpeg" }
+],
+Headphones: [
+  { name: "Studio Headphones", price: "₹2999", image: "https://images.pexels.com/photos/339466/pexels-photo-339466.jpeg" },
+  { name: "Wireless Over‑ear", price: "₹3499", image: "https://images.pexels.com/photos/339467/pexels-photo-339467.jpeg" },
+  { name: "Bass Boost Earbuds", price: "₹2499", image: "https://images.pexels.com/photos/339468/pexels-photo-339468.jpeg" },
+  { name: "Gaming Headset", price: "₹3999", image: "https://images.pexels.com/photos/339469/pexels-photo-339469.jpeg" },
+  { name: "Sport Earbuds", price: "₹1999", image: "https://images.pexels.com/photos/339470/pexels-photo-339470.jpeg" },
+  { name: "Noise Canceling Earbuds", price: "₹4299", image: "https://images.pexels.com/photos/339471/pexels-photo-339471.jpeg" },
+  { name: "Bluetooth Earbuds", price: "₹2799", image: "https://images.pexels.com/photos/339472/pexels-photo-339472.jpeg" },
+  { name: "Travel Headphones", price: "₹3199", image: "https://images.pexels.com/photos/339473/pexels-photo-339473.jpeg" },
+  { name: "Foldable Earphones", price: "₹2599", image: "https://images.pexels.com/photos/339474/pexels-photo-339474.jpeg" },
+  { name: "Wireless In‑ear Set", price: "₹2199", image: "https://images.pexels.com/photos/339475/pexels-photo-339475.jpeg" }
+],
+Makeup: [
+  { name: "Liquid Lipstick", price: "₹699", image: "https://images.pexels.com/photos/733085/pexels-photo-733085.jpeg" },
+  { name: "Compact Powder", price: "₹499", image: "https://images.pexels.com/photos/733086/pexels-photo-733086.jpeg" },
+  { name: "Eye Shadow Palette", price: "₹1299", image: "https://images.pexels.com/photos/733087/pexels-photo-733087.jpeg" },
+  { name: "Blush & Highlighter", price: "₹799", image: "https://images.pexels.com/photos/733088/pexels-photo-733088.jpeg" },
+  { name: "Makeup Brush Set", price: "₹999", image: "https://images.pexels.com/photos/733089/pexels-photo-733089.jpeg" },
+  { name: "Matte Lip Gloss", price: "₹599", image: "https://images.pexels.com/photos/733090/pexels-photo-733090.jpeg" },
+  { name: "Contour Kit", price: "₹1199", image: "https://images.pexels.com/photos/733091/pexels-photo-733091.jpeg" },
+  { name: "Mascara Waterproof", price: "₹699", image: "https://images.pexels.com/photos/733092/pexels-photo-733092.jpeg" },
+  { name: "Eyebrow Pencil", price: "₹399", image: "https://images.pexels.com/photos/733093/pexels-photo-733093.jpeg" },
+  { name: "Lip & Cheek Tint", price: "₹849", image: "https://images.pexels.com/photos/733094/pexels-photo-733094.jpeg" }
+],
+kitchen: [
+  { name: "Non-stick Pan Set", price: "₹2499", image: "" },
+  { name: "Spice Jar Set", price: "₹999", image: "" },
+  { name: "Ceramic Dinnerware Set", price: "₹3499", image: "" },
+  { name: "Wooden Utensils Pack", price: "₹799", image: "" },
+  { name: "Glass Storage Jars", price: "₹1199", image: "" },
+  { name: "Tea Canister Set", price: "₹1499", image: "" },
+  { name: "Marble Chopping Board", price: "₹999", image: "" },
+  { name: "Frying Pan Non-Stick", price: "₹1399", image: "" },
+  { name: "Spice Grinder Set", price: "₹799", image: "" },
+  { name: "Eco Kitchen Towels", price: "₹599", image: "" }
+],
+furniture: [
+  { name: "Modern Sofa", price: "₹14999", image: "https://m.media-amazon.com/images/I/611C8crwQRL._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "Coffee Table", price: "₹4999", image: "https://m.media-amazon.com/images/I/51jlmXaClOL._SX300_SY300_QL70_FMwebp_.jpg" },
+  { name: "Dining Set", price: "₹19999", image: "https://m.media-amazon.com/images/I/41aSOoUwLYL._SY300_SX300_QL70_FMwebp_.jpg" },
+  { name: "Bookshelf Rack", price: "₹3999", image: "https://m.media-amazon.com/images/I/71VWoFK1OgL._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "Accent Chair", price: "₹6999", image: "https://m.media-amazon.com/images/I/61RES+ESWVL._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "TV Stand", price: "₹5999", image: "https://m.media-amazon.com/images/I/81VUeFbDV7L._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "Area Rug", price: "₹2599", image: "https://m.media-amazon.com/images/I/A15PuYPZ6nL._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "studytable", price: "₹3299", image: "https://m.media-amazon.com/images/I/61R64nOx17L._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "Bedside Table", price: "₹2999", image: "https://m.media-amazon.com/images/I/61-9YevnXbL._AC_UL480_FMwebp_QL65_.jpg" },
+  { name: "Decorative Ottoman", price: "₹3499", image: "https://m.media-amazon.com/images/I/71V7ltF8cOL._AC_SR230,210_CB1169409_QL70_.jpg" }
+],
+
+BeautyTools: [
+  { name: "Makeup Mirror with Lights", price: "₹2499", image: "https://m.media-amazon.com/images/I/81tm0ACI41L._SX679_.jpg",url:"https://www.amazon.in/PRIME-PICK-Mirror-Magnification-Rechargeable/dp/B0CTQKX1WK/ref=sr_1_4_sspa?dib=eyJ2IjoiMSJ9.ZFOKN4ESxfB_VKrMVNobQt40b-zBrCch3xDrBl1sqg2ZX6E101pjVkzy_wEMnVXeKbpLP3WBqloe_G3Uwho8dVrOyNStPlnVx5fT0u7fUlu_aechhVem37C62z1I9Z74s4uk68hec6IQVTkNwY2WyEEIphYaTwIaqAcLWts67IMCK_nsdSy4kFX1U1XBOpvbB-0dROdDladwyGqNPLyi0pK3jYyuZFxKmSmBTnRfv5fMaKU_2eiex7xr6ObI3AsAEfMXOxecKnqSo44spghp2HR13fm7-ys8pTxSu85Cd8k.3g7uUw4iyXzKn3yJI6qI0ceNR9sHg8ke-RzsuJkLdzA&dib_tag=se&keywords=makeup+mirror+with+light&qid=1754122933&sr=8-4-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1" },
+  { name: "Facial Roller", price: "₹599", image: "https://m.media-amazon.com/images/I/61jtkv8mPAL._SX679_.jpg" ,url:"https://www.amazon.in/KEMETHY-Jade-Roller-Gua-Sha/dp/B0FGY1NMG8/ref=sr_1_3_sspa?crid=M520HFVCS7FZ&dib=eyJ2IjoiMSJ9.cHUm-brc6U6BEYqKZ-qSbGuzpBtT6R9eMxLZVF29hscDy_KnJvzR_oB9pfx_u8UUpkrXpda_f3DgfgzK8aO2xdEdBjUfOnlVX5whZJ_gzUCMQLA7mZqQDPZ0UDv_ro7IFgJ-5vkOc5e27_Gj21U40kJtvCBU3TMngnNEVPNjUGstxxeE35LK5cLsM_UIzkLa7j-SeihtZ9oL2ZY7zveeNeAG-YiHDxc9Uwbq7Rtri8HPelLE4eaMjpeD04oML1HhEMJAoYV0FNLzomfgdEw3gwBvF1aAhb8SsheQ1upz3WE.Qb08eRE8heI0Cp1pZ1yEpus3DWzOA8ZkiHdFG_mFgso&dib_tag=se&keywords=Facial%2BRoller&qid=1754122970&sprefix=facial%2Broller%2Caps%2C303&sr=8-3-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1"},
+  { name: "Hair Brush Set", price: "₹699", image: "https://m.media-amazon.com/images/I/71Yo7gRuyzL._SX522_.jpg",url:"https://www.amazon.in/Red-Square12-Detangling-Including-Straight/dp/B0BFBHCCF9/ref=sr_1_2_sspa?crid=1BZGY0O98G288&dib=eyJ2IjoiMSJ9.ihgPCekTBqj8KZTthUdiB6fEpykTHdZDJ-EZgXdPEbDw_e9gF_E9A1F6oKDw-ryFQK0847SMkwAHqCdjvprKjAFBOvvggjw5VQUoALumjyZawFfYKPquZpKgQVAE_HxxiRxm_0mGNe19fi3mQaFsT16BU4noBbO1L3SA0IOX7IgoA_3swKpQWBXfizSuXSuhk-vCxAzFx3BiRufHklJjyl6DNPID5cXr0KxKexO2Zfi-PUTcnx-i04_J059FYjPCXXq5T4j4j5HjueAeBRcpBJg_S_Y0x1gxDx_067lOFK4.S8L6TMl8uiWISy6uuQfFYurghsjEjTOqaAup1aCI9w4&dib_tag=se&keywords=Hair+Brush+Set&qid=1754123046&sprefix=hair+brush+set%2Caps%2C268&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1" },
+  { name: "Manicure Kit", price: "₹499", image: "https://m.media-amazon.com/images/I/71BYKaZoaiL._SX679_.jpg",url: "https://www.amazon.in/Kraftobotic-Manicure-Pedicure-Stainless-Blackhead/dp/B0DP7NHMBD/ref=sr_1_4_sspa?crid=3RKGBLFEA0XM2&dib=eyJ2IjoiMSJ9.sZbti9gn7HXZsSBPBnwfSfx3uIovVhVyTOl82DPrcQyZPI7mn0lxerlqPmfsDdkFwaAFY7HAcQiaTo53mzXzmETLsK0vXdgc2D7nZpkT1yScWxQt3sp1iUvsyHCTAusYGWOcDQ-2qaYyO4ceuDuYWawfiCvqUp1Ipqe1_jih8MDqicuR0wtuil5IVX9y2THrf3_I7-K-ncUTqo343wptysUmtVqHmaF6VIhvNujC3lD5FYGbxtfwPU9GoFumgWrRU4vggrQE4oSzhEMx9EEZxI4vOFHn1Iw50Bo3eNdoBss.KNH5DncEQlXQQwXKxzRsAqPm3gGd6yehXZG2nKA6Ck0&dib_tag=se&keywords=Manicure+Kit&qid=1754123178&sprefix=manicure+kit%2Caps%2C316&sr=8-4-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1"},
+  { name: "Silicone Mask Brush", price: "₹399", image: "https://m.media-amazon.com/images/I/511tquvccDL._SX522_.jpg",url:"https://www.amazon.in/Houvida-Silicone-Applicator-Brushes-Charcoal/dp/B0D3B9PQ4D/ref=sr_1_1_sspa?crid=27E1XNBUFZF4O&dib=eyJ2IjoiMSJ9.ifkHN6-7WOuzvima24vwifosGN-PWVpzcEJgeD9zswgYTvnOVufXDVd64sjMv-P5zwi8iCApKZBtq3MKGuN30HiItbO5Z2qOhMKYbziAmC8vz5YeTqnRzn9l-jIGflBPqUZerFrBGJVw_KbyaMsC_Rddz2PexUhtCQKHDVcyXCHOWnwaM_VDuIf811IaSIYjrSGZPmkB_kvTjSxWsOJ66PoTizhbu3WRICzCQK2-qOZMhpPiZGZzasBcHGpMyUsRGl2hjH8ugGx86knN34UFyKvGNhEGYNRpK72qPO-WT3o.RGlTzqnJUoYM4mgMDtJ54wlE3AQaNc02W-3nU-8KSw8&dib_tag=se&keywords=Silicone+Mask+Brush&qid=1754123445&sprefix=silicone+mask+brush%2Caps%2C307&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1" },
+  { name: "Makeup Organiser", price: "₹1299", image: "https://m.media-amazon.com/images/I/71DuptnROkL._SX679_.jpg" ,url:"https://www.amazon.in/OCEANEVO-Cosmetics-Organizer-Dressing-Skincare/dp/B0DM61PXLP/ref=sxin_14_pa_sp_search_thematic_sspa?content-id=amzn1.sym.739e670d-dfb3-4be0-9815-d8c5c0372e07%3Aamzn1.sym.739e670d-dfb3-4be0-9815-d8c5c0372e07&crid=138ATYTJBSYF9&cv_ct_cx=%22Makeup%2BOrganiser&keywords=%22Makeup%2BOrganiser&pd_rd_i=B0DM61PXLP&pd_rd_r=a1110709-9ddf-458a-8d20-f2b80343236b&pd_rd_w=hXsFB&pd_rd_wg=gEnje&pf_rd_p=739e670d-dfb3-4be0-9815-d8c5c0372e07&pf_rd_r=B048ZGQ3FSJENPCTCZ76&qid=1754123546&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sprefix=makeup%2Borganiser%2Caps%2C279&sr=1-2-66673dcf-083f-43ba-b782-d4a436cc5cfb-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9zZWFyY2hfdGhlbWF0aWM&th=1"},
+  { name: "Hair Straightener", price: "₹1999", image: "https://m.media-amazon.com/images/I/51Z8He9JLXL._SX679_.jpg" ,url:"https://www.amazon.in/PHILIPS-BHS393-Straightener-SilkProtect-Technology/dp/B095BPMHWH/ref=sr_1_2_sspa?dib=eyJ2IjoiMSJ9.LHzt1j5MUmyp2k0LbTf_8o68t73SabxROTV6-lgNERVFGcq5VJFoGvFtozTG5ESlYDn1R_5mwFWITcsohGJF-xKs5DROVt0P0Kx9h2EiB8qrYYFEGWis9SRue4qk5H3NvOyRHKl-NYsWdr0D4wj17IivLEqDC8yGPzMRHyaXKF4GFkEmESmHAq_nEZrXyAufZBX-swK7BicagVY1kekSQmBBS-ZXN8ricFbbGEdehTo9qfmSzXWxbfIukBa6TSF34WnAGNh__yEsSaQmLDdsi2i_zYBg4MxiFPDvK3G1Ehg.fp5W46H105IFAuN8yscKXVtNRPguDCPnpRLej5mBxVo&dib_tag=se&keywords=Hair+Straightener&qid=1754124240&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1"},
+  { name: "Epilator Device", price: "₹1599", image: "https://m.media-amazon.com/images/I/41BuNj8umSL._SX300_SY300_QL70_FMwebp_.jpg",url:"https://www.amazon.in/Winston-Rechargeable-Epilator-Portable-Electric/dp/B0CTQ5YG18/ref=sr_1_3_sspa?crid=2ZIOAC9OELQC&dib=eyJ2IjoiMSJ9.b8icB-NCE2HlwXCOw9FTGmdSFNMel0sdPi-0hlK-KCfRTMNfA2wKZxh2YfCd4tjBzYqeArvGtowDBzPxSq05Sqtp9SQUGiikw4DBK0MiYor_tNICg3WYq2otob2W6bi5iC7zv-guHhHzuPYGQJ-aIxubxmH8wZxKMVTgK_ILjnRqUU0b4JnH79LsVJ7OWUSugSRcaX49XIDYWE-bngEP5ge1k4q24bTz-2Df98HttFQC443AJhcVxsPdSEkBonYHCUHzYHwRljUM0LZ4WIYZ8gx8MIUmGPf2tGobALIDCEI.9O7Oe8Uw9z2NxJ1bbb9Vc3Lu25m75QwVOhKhUKUatEk&dib_tag=se&keywords=Epilator+Device&qid=1754124300&sprefix=epilator+device%2Caps%2C296&sr=8-3-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1" },
+  { name: "Face Steamer", price: "₹2199", image: "https://m.media-amazon.com/images/I/31TXUmI-GdL._SX300_SY300_QL70_FMwebp_.jpg",url:"https://www.amazon.in/CARESMITH-Dedicated-Vaporizer-Anti-Splash-Technology/dp/B0CMTMRB3K/ref=sr_1_2_sspa?crid=2NBDKR7TGZ53Y&dib=eyJ2IjoiMSJ9.uVqevHCNYxTcH64JhRqYmfMnM2i5-peJ2u7gDfjESZpMXBfqR8WGmlsHJd5_cDzhpnZnF8TJN3mExjkel0MN7AMLJUGmYtiZDTalFx8iwl-tjDK_6F3xFZ66eXPq6hzqdxxZpKBXkNKkmL2Kd1M732QQ_Ex2jvqaWwxbTTYdzHKl361BdZHuLKs6m_X4GjLU9XmGpW56YeEEWQ7ig5LzN9taY2aGEe-hyD0wfyptqb6W79cRfzHdiaVvWeNTjgM-t45SGqD2QZpnRkORfRDWZVZ5uwjS6ySULQ38waOLric.XAoL4pi_52J5wvGftgmNGYRIy0Y8tcuMAPGti5vNKdo&dib_tag=se&keywords=Face+Steamer&qid=1754124355&sprefix=%2Caps%2C505&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1" },
+  { name: "Makeup Blender Set", price: "₹899", image:"https://m.media-amazon.com/images/I/41MJZFutX5L._SX300_SY300_QL70_FMwebp_.jpg",url:"https://www.amazon.in/Multi-Shape-Collection-Headband-Aesthetic-Functional/dp/B0F9TQGBNG/ref=sr_1_8?crid=32A5FBLW1KB20&dib=eyJ2IjoiMSJ9.n-fMfF1-0fgtGqtye1eP44Ze3B-8-2Q-M4XsZzRfMUr6iuOccfNngdN5Cg3jX4j0-4JG5jzZdmRNIG--7bhaLUfz39RTnr0Da2zlsMR7pWiv7Rx3XLnaQ5yaiND4bKDbjf5BzFu8jCR3rrgNjdglMEEs5cs4CYvLGvcz7V1CIV_M44rhyyP-WSQP7bDSxWfkdkBBW7t_8hMni4nJM8-zd22eqkQ3Ljaem9iZpIUdXcAgQ19TXsnd61ZcBwrueqdfwwW2sv0y93seiPmX2WncVXyei_6Y0x_WM_aK4U_oQJg.8poEGZRJCiCl3RhsJNzL9uZZTL0ifRLRrHlijII6R0E&dib_tag=se&keywords=Makeup%2BBlender%2BSet&qid=1754124438&sprefix=face%2B%2Caps%2C370&sr=8-8&th=1" }
+]
+    };
+
+    function showCategoryProducts(category) {
+      const modal = document.getElementById('modal');
+      const section = document.getElementById('products-section');
+      section.innerHTML = '';
+      if (!productsData[category]) return;
+
+      productsData[category].forEach(prod => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <img src="${prod.image}" alt="${prod.name}">
+          <h3>${prod.name}</h3>
+          <p>${prod.price}</p>
+          <div>
+            <button class="placeorder">Place Order</button>
+            <a href="${prod.url}" target="_blank" class="view-details">View Details</a>
+
+          </div>
+        `;
+        section.appendChild(div);
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="left">My FashionHub</div>
+    <div class="center"><input type="text" placeholder="Search for products..." /></div>
+    <button onclick="location.href='new6.html'">Logout</button>
+
+  </header>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <div id="products-section" class="products-section"></div>
+    </div>
+  </div>
+
+  <div class="offer-box">
+    <div style="display: inline-block; width: 400px; margin-right: 15px; vertical-align: top;">
+    <img src="https://hiddenmantra.com/wp-content/uploads/2024/09/Best-Happy-Navratri-Wishes-Messages-Quotes-in-english-1536x1023.jpeg" alt="Navarathri"
+         style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px;">
+    <p style="text-align:center; font-weight:bold; color:#d63384; margin-top: 10px;">🎉 Navarathri Functions</p>
+  </div>
+
+  <div style="display: inline-block; width: 400px; margin-right: 15px; vertical-align: top;">
+    <img src="https://i.pinimg.com/736x/2b/0e/6e/2b0e6ed661a6534c3629ab3db4aafbd4.jpg" alt="Aadi Sale"
+         style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px;">
+    <p style="text-align:center; font-weight:bold; color:#d63384; margin-top: 10px;">🔥 Aadi Sale - Upto 70% OFF</p>
+  </div>
+
+  <div style="display: inline-block; width: 400px; margin-right: 15px; vertical-align: top;">
+    <img src="https://e0.pxfuel.com/wallpapers/116/600/desktop-wallpaper-ranjna-yadav-on-my-saves-baby-ganesha-shri-ganesh-ganesha-cool-ganesha.jpg" alt="Vinayagar Chathurthi"
+         style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px;">
+    <p style="text-align:center; font-weight:bold; color:#d63384; margin-top: 10px;">🕉️ Vinayagar Chathurthi Specials</p>
+  </div>
+  </div>
+
+  <div class="categories">
+    <div class="card"><img src="https://images.alphacoders.com/957/957128.jpg"><h2>Men</h2><a class="shop-now" onclick="showCategoryProducts('men')">Shop Now</a></div>
+    <div class="card"><img src="https://media.weddingz.in/images/20230103122459/red-lehenga-6.jpg"><h2>Women</h2><a class="shop-now" onclick="showCategoryProducts('women')">Shop Now</a></div>
+    <div class="card"><img src="https://cdn.pixabay.com/photo/2023/09/04/06/11/ai-generated-8232099_1280.jpg"><h2>Kids</h2><a class="shop-now" onclick="showCategoryProducts('kids')">Shop Now</a></div>
+    <div class="card"><img src="https://www.stackumbrella.com/wp-content/uploads/2019/10/house.jpg"><h2>HomeDecor</h2><a class="shop-now" onclick="showCategoryProducts('homedecor')">Shop Now</a></div>
+    <div class="card"><img src="https://www.southjewellery.com/wp-content/uploads/2020/04/diamond-emerald-bangles-scaled-e1585932575233.jpg"><h2>Bangles</h2><a class="shop-now" onclick="showCategoryProducts('Bangles')">Shop Now</a></div>
+    <div class="card"><img src="https://1.bp.blogspot.com/-79hrH3X9gUg/XVknZOnmqoI/AAAAAAAAGY0/v6XN91zmJS8n6_aVQsnv6JbAAJ1xHCEBwCLcBGAs/s1600/Bride-essentials-4.jpg"><h2>Jewellery</h2><a class="shop-now" onclick="showCategoryProducts('Jewellery')">Shop Now</a></div>
+    <div class="card"><img src="https://img.freepik.com/premium-photo/skin-care-product-cosmetic-bottle_863013-39252.jpg"><h2>Skincare</h2><a class="shop-now" onclick="showCategoryProducts('Skincare')">Shop Now</a></div>
+    <div class="card"><img src="https://img.freepik.com/premium-photo/footwear-hd-8k-wallpaper-stock-photographic_1064748-42890.jpg"><h2>Footwear</h2><a class="shop-now" onclick="showCategoryProducts('Footwear')">Shop Now</a></div>
+    <div class="card"><img src="https://mickeyminors.pk/wp-content/uploads/2022/12/Soft-Fluffy-Colorful-Unicorn-Rectangle-Bag-2.jpg"><h2>Bags</h2><a class="shop-now" onclick="showCategoryProducts('Bags')">Shop Now</a></div>
+    <div class="card"><img src="https://usa.inquirer.net/files/2019/12/shutterstock_738107467.jpg"><h2>Electronics</h2><a class="shop-now" onclick="showCategoryProducts('Electronics')">Shop Now</a></div>
+    <div class="card"><img src="https://i.pinimg.com/originals/4c/8d/17/4c8d17cc045edd2f331680afa318e5f1.jpg"><h2>Watches</h2><a class="shop-now" onclick="showCategoryProducts('Watches')">Shop Now</a></div>
+    <div class="card"><img src="https://tse1.mm.bing.net/th/id/OIP.hRaFAWVd9booZc3uf8hqvgHaE7?pid=Api&P=0&h=180"><h2>Mobiles</h2><a class="shop-now" onclick="showCategoryProducts('Mobiles')">Shop Now</a></div>
+    <div class="card"><img src="https://www.zennioptical.com/blog/wp-content/uploads/2023/11/Premium2-1.jpg"><h2>Sunglasses</h2><a class="shop-now" onclick="showCategoryProducts('Sunglasses')">Shop Now</a></div>
+    <div class="card"><img src="https://img.freepik.com/premium-photo/cute-blue-teddy-bear-toy-blue-background-with-space-generative-ai_123447-41196.jpg"><h2>Toys</h2><a class="shop-now" onclick="showCategoryProducts('Toys')">Shop Now</a></div>
+    <div class="card"><img src="https://i.pinimg.com/736x/ae/11/ec/ae11ec71f20e18c0fe282ebc07033820.jpg"><h2>Casuals</h2><a class="shop-now" onclick="showCategoryProducts('Casuals')">Shop Now</a></div>
+    <div class="card"><img src="http://s3.amazonaws.com/nikeinc/assets/26825/Nike_Digital_NSW_NikeKnows_Laydown_Cllctn_v2_hd_1600.jpg?1389824000"><h2>Sportswear</h2><a class="shop-now" onclick="showCategoryProducts('Sportswear')">Shop Now</a></div>
+    <div class="card"><img src="https://img.freepik.com/free-photo/young-woman-wearing-winter-clothes_273609-22205.jpg"><h2>Winterwear</h2><a class="shop-now" onclick="showCategoryProducts('Winterwear')">Shop Now</a></div>
+    <div class="card"><img src="https://hips.hearstapps.com/hmg-prod/images/wireless-earbuds-1661183784.jpg"><h2>Headphones</h2><a class="shop-now" onclick="showCategoryProducts('Headphones')">Shop Now</a></div>
+    <div class="card"><img src="https://i.pinimg.com/originals/70/b8/75/70b8752ab123e301468eeb9f47d4c413.jpg"><h2>Makeup</h2><a class="shop-now" onclick="showCategoryProducts('Makeup')">Shop Now</a></div>
+    <div class="card"><img src="https://img.freepik.com/premium-photo/kitchen-product-backdrop-interior-background-image_979495-17746.jpg"><h2>Kitchen</h2><a class="shop-now" onclick="showCategoryProducts('Kitchen')">Shop Now</a></div>
+    <div class="card"><img src="https://d2xjmi1k71iy2m.cloudfront.net/dairyfarm/id/pageImages/page_thumb_10_1602128152.jpeg"><h2>Furniture</h2><a class="shop-now" onclick="showCategoryProducts('Furniture')">Shop Now</a></div>
+    <div class="card"><img src="https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL2hpcHBvdW5pY29ybl9jb3NtZXRpY19tYWtlX3VwX2ZsYXRfbGF5X3BpbmtfYmFja2dyb3VuZF9iODQxY2U1MC1mNDRhLTQ4ODAtODEwMC1hMDc5Yjc4MjA3NDUuanBn.jpg"><h2>BeautyTools</h2><a class="shop-now" onclick="showCategoryProducts('BeautyTools')">Shop Now</a></div>
+</div>
+</body>
+</html>
